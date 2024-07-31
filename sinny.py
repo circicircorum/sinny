@@ -11,7 +11,9 @@ scramble = comproc.stdout.decode()[:-2] + ' ' # remove ctrl chars and add a trai
 stages = [' solve eo ', ' solve dr-eo ', ' solve htr ', ' solve '] # stages with whitespaces
 # note: may move out of htr at the last stage
 
-doTestSolve = True
+## (alternative stages)
+stages = [' solve eoud ', ' solve drud ', ' solve htr-drud ', ' solve htrfin ']
+# # stages with whitespaces using U/D EO and without going out of HTR at the end
 
 #### solve cube in stages ####
 def solver(scramble, verbosity=0):
@@ -39,13 +41,16 @@ def solver(scramble, verbosity=0):
         # solved -> (scramble+partialsolution) -> getcontinuation
         comproc = subprocess.run(nissy_name + stage + scramble + additional_moves, capture_output=True)
         raw_output = comproc.stdout.decode() # raw_output has the solution for the next stage
-
-        if show_solution:
-            print(raw_output, end='')
+        raw_output = raw_output[:-2] # strip \r\n
 
         processed_output = raw_output[:raw_output.index('(')] # strip movecount
         additional_moves += processed_output
-        solution_length += int(raw_output[raw_output.index('(')+1:raw_output.index(')')]) # get movecount and add to cumsum
+        movecount = int(raw_output[raw_output.index('(')+1:raw_output.index(')')])
+        solution_length += movecount
+
+        if show_solution:
+            #print(raw_output)#, end='') # \r\n has been stripped so add a newline back in
+            print(f'{processed_output}//{stage[7:]}({movecount}/{solution_length})') # note: strip ' solve ' from stage (potential source of bugs (:fingerscrossed:))
 
     ## print soln to terminal
     if verbosity > 1:
@@ -56,10 +61,6 @@ def solver(scramble, verbosity=0):
         print('solution: ' + additional_moves)
     
     return [additional_moves, solution_length]
-
-## test solve
-if doTestSolve:
-    solver(scramble, 2)
 
 def many_solves(n_scrambles = 10, verbosity=2):
     cumsum_moves = 0
@@ -73,7 +74,6 @@ def many_solves(n_scrambles = 10, verbosity=2):
     
     #print(f'avg: {cumsum_moves} / {n_scrambles} = {cumsum_moves // n_scrambles} R {cumsum_moves % n_scrambles}')
     return cumsum_moves
-
 
 def batch(n_scrambles=10, verbosity=2):
     #n_scrambles = 10
@@ -89,6 +89,17 @@ def experiment():
     pass
 
 def main():
-    pass
+    doTestSolve = False
+    doBatchSolves = True
+    nBatchSize = 100
+    batch_verbosity = 1
 
-batch(10, 2)
+    ## test solve
+    if doTestSolve:
+        solver(scramble, 2)
+
+    if doBatchSolves:
+        batch(nBatchSize, batch_verbosity)
+
+if __name__ == '__main__':
+    main()
