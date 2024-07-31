@@ -68,7 +68,7 @@ def many_solves(n_scrambles = 10, verbosity=2, stages=default_stages):
         print(f'scramble number {n}...')
         comproc = subprocess.run(nissy_name + '  scramble', capture_output=True)
         scramble = comproc.stdout.decode()[:-2] + ' '
-        cumsum_moves += solver(scramble, verbosity)[1]
+        cumsum_moves += solver(scramble, verbosity, stages=stages)[1]
         if verbosity > 0:
             print()
     
@@ -103,7 +103,7 @@ def main():
     parser.add_argument('-d', '--debug', action='store_true', help='display debug information')
     parser.add_argument('-t', '--notest', action='store_true', help='suppress test solve at the beginning')
     args = parser.parse_args()
-    
+
     doTestSolve = True
     doBatchSolves = False
     nBatchSize = 3
@@ -117,11 +117,11 @@ def main():
 
     stages = default_stages
     if args.stages == 1:
-    	stages = [' solve eofb ', ' solve drud-eofb ', ' solve htr-drud ', ' solve htrfin ']
-    ## test solve
+        stages = [' solve eofb ', ' solve drud-eofb ', ' solve htr-drud ', ' solve htrfin ']
+    
+    ## test solves
     if doTestSolve:
         solver(scramble, test_verbosity, stages=stages)
-
     if doBatchSolves:
         batch(nBatchSize, batch_verbosity, stages=stages)
 
