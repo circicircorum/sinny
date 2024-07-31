@@ -8,15 +8,17 @@ comproc = subprocess.run(nissy_name + '  scramble', capture_output=True)
 scramble = comproc.stdout.decode()[:-2] + ' ' # remove ctrl chars and add a trailing space
 
 #### define solving stages ####
-stages = [' solve eo ', ' solve dr-eo ', ' solve htr ', ' solve '] # stages with whitespaces
+default_stages = [' solve eo ', ' solve dr-eo ', ' solve htr ', ' solve '] # stages with whitespaces
 # note: may move out of htr at the last stage
 
 ## (alternative stages)
-stages = [' solve eoud ', ' solve drud ', ' solve htr-drud ', ' solve htrfin ']
-# # stages with whitespaces using U/D EO and without going out of HTR at the end
+#stages = [' solve eoud ', ' solve drud ', ' solve htr-drud ', ' solve htrfin ']
+## stages with whitespaces using U/D EO and without going out of HTR at the end
+#stages = [' solve eofb ', ' solve drud-eofb ', ' solve htr-drud ', ' solve htrfin ']
+# ^ the thing that i actly intended to do oops (but with like, even more restrictions) (now chngd in main())
 
 #### solve cube in stages ####
-def solver(scramble, verbosity=0):
+def solver(scramble, verbosity=0, stages=default_stages):
 
     ## decide how much info to show
     show_scramble = False
@@ -54,15 +56,13 @@ def solver(scramble, verbosity=0):
 
     ## print soln to terminal
     if verbosity > 1:
-        print(f'solution: {additional_moves}({solution_length})')# + additional_moves +) # does not reflect cancellations into moves between stages
-        #print('length: ' + str(solution_length))
-        #print()
+        print(f'solution: {additional_moves}({solution_length})') # does not reflect cancellations into moves between stages
     elif verbosity == 1:
-        print('solution: ' + additional_moves)
+        print(f'solution: {additional_moves}({solution_length})') # same output as of now
     
     return [additional_moves, solution_length]
 
-def many_solves(n_scrambles = 10, verbosity=2):
+def many_solves(n_scrambles = 10, verbosity=2, stages=default_stages):
     cumsum_moves = 0
     for n in range(n_scrambles):
         print(f'scramble number {n}...')
@@ -75,11 +75,11 @@ def many_solves(n_scrambles = 10, verbosity=2):
     #print(f'avg: {cumsum_moves} / {n_scrambles} = {cumsum_moves // n_scrambles} R {cumsum_moves % n_scrambles}')
     return cumsum_moves
 
-def batch(n_scrambles=10, verbosity=2):
+def batch(n_scrambles=10, verbosity=2, stages=default_stages):
     #n_scrambles = 10
     print()
     print(f'performing test with {n_scrambles} scrambles...')
-    cumsum_moves = many_solves(n_scrambles, verbosity)
+    cumsum_moves = many_solves(n_scrambles, verbosity, stages)
     print('test complete')
     #print(f'avg: {cumsum_moves} / {n_scrambles} = {cumsum_moves // n_scrambles} R {cumsum_moves % n_scrambles}')
     print(f'avg: {cumsum_moves} / {n_scrambles} = {cumsum_moves / n_scrambles:.2f}')
@@ -89,17 +89,41 @@ def experiment():
     pass
 
 def main():
-    doTestSolve = False
-    doBatchSolves = True
-    nBatchSize = 100
-    batch_verbosity = 1
+    import sys
+    import argparse
+    parser = argparse.ArgumentParser(
+        prog='sinny',
+        description='nissy-based script - performs a test solve by default',
+        epilog='contact deadmanlsh if u needs helps'
+    )
+    parser.add_argument('-b', '--batchsize', type=int, help='perform test with batch of given size')
+    parser.add_argument('-s', '--stages', type=int, help='the method to use as defined by stages (see code)', default=1) # note: not default_stages :)
+    #parser.add_argument('-o', '--output', help='file to save output to (wip)')
+    parser.add_argument('-v', '--verbosity', type=int, help='level of verbosity to use', default=2)
+    parser.add_argument('-d', '--debug', action='store_true', help='display debug information')
+    parser.add_argument('-t', '--notest', action='store_true', help='suppress test solve at the beginning')
+    args = parser.parse_args()
+    
+    doTestSolve = True
+    doBatchSolves = False
+    nBatchSize = 3
+    if args.notest:
+        doTestSolve = False
+    if args.batchsize is not None:
+        doBatchSolves = True #doBatchSolves = True
+        nBatchSize = args.batchsize #nBatchSize = 10
+    batch_verbosity = args.verbosity #batch_verbosity = 2
+    test_verbosity = args.verbosity # same for now
 
+    stages = default_stages
+    if args.stages == 1:
+    	stages = [' solve eofb ', ' solve drud-eofb ', ' solve htr-drud ', ' solve htrfin ']
     ## test solve
     if doTestSolve:
-        solver(scramble, 2)
+        solver(scramble, test_verbosity, stages=stages)
 
     if doBatchSolves:
-        batch(nBatchSize, batch_verbosity)
+        batch(nBatchSize, batch_verbosity, stages=stages)
 
 if __name__ == '__main__':
     main()

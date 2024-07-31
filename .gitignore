@@ -1,3 +1,8 @@
-./nissy/*
-./nissy-files/*
+.vscode/*
+__pycache__/*
+nissy/*
+nissy-files/*
 *_old
+tables/*
+*.txt
+*.exe
