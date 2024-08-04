@@ -1,13 +1,21 @@
 ##### sinny usage examples #####
 import sinny
 
-# get a new scramble
-scr_a = sinny.getScramble()
+def runScramble(verbosity=2):
+    # get a new scramble
+    scr_a = sinny.getScramble()
 
-# solve with verbosity level 2
-res = sinny.solver(scr_a, verbosity=2) # i.e. stages = default_stages
+    # solve with verbosity level 2
+    res = sinny.solver(scr_a, verbosity=verbosity) # i.e. stages = default_stages
 
-# batch solves
-sinny.batch(n_scrambles=3, verbosity=2) # i.e. stages = default_stages
+    # batch solves
+    sinny.batch(n_scrambles=3, verbosity=verbosity) # i.e. stages = default_stages
 
-# print(f"ret val: {res}")
+    return [scr_a, res]
+
+def main():
+    rs_res = runScramble() # default verbosity is 2.
+    # print(f"ret val: {rs_res}")
+
+if '__name__' == '__main__':
+    main()
