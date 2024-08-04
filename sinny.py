@@ -1,10 +1,10 @@
 import subprocess
 
 #### define path to nissy ####
-nissy_name = '.\\nissy-2.0.7.exe'
+NISSYPATH = '.\\nissy-2.0.7.exe'
 
 #### get a test scramble ####
-comproc = subprocess.run(nissy_name + '  scramble', capture_output=True)
+comproc = subprocess.run(NISSYPATH + '  scramble', capture_output=True)
 scramble = comproc.stdout.decode()[:-2] + ' ' # remove ctrl chars and add a trailing space
 
 #### define solving stages ####
@@ -16,6 +16,11 @@ default_stages = [' solve eo ', ' solve dr-eo ', ' solve htr ', ' solve '] # sta
 ## stages with whitespaces using U/D EO and without going out of HTR at the end
 #stages = [' solve eofb ', ' solve drud-eofb ', ' solve htr-drud ', ' solve htrfin ']
 # ^ the thing that i actly intended to do oops (but with like, even more restrictions) (now chngd in main())
+
+def getScramble():
+    comproc = subprocess.run(NISSYPATH + '  scramble', capture_output=True)
+    scramble = comproc.stdout.decode()[:-2] + ' ' # remove ctrl chars and add a trailing space
+    return scramble
 
 #### solve cube in stages ####
 def solver(scramble, verbosity=0, stages=default_stages):
@@ -41,7 +46,7 @@ def solver(scramble, verbosity=0, stages=default_stages):
     for stage in stages:
 
         # solved -> (scramble+partialsolution) -> getcontinuation
-        comproc = subprocess.run(nissy_name + stage + scramble + additional_moves, capture_output=True)
+        comproc = subprocess.run(NISSYPATH + stage + scramble + additional_moves, capture_output=True)
         raw_output = comproc.stdout.decode() # raw_output has the solution for the next stage
         raw_output = raw_output[:-2] # strip \r\n
 
@@ -62,11 +67,11 @@ def solver(scramble, verbosity=0, stages=default_stages):
     
     return [additional_moves, solution_length]
 
-def many_solves(n_scrambles = 10, verbosity=2, stages=default_stages):
+def _many_solves(n_scrambles = 10, verbosity=2, stages=default_stages):
     cumsum_moves = 0
     for n in range(n_scrambles):
         print(f'scramble number {n}...')
-        comproc = subprocess.run(nissy_name + '  scramble', capture_output=True)
+        comproc = subprocess.run(NISSYPATH + '  scramble', capture_output=True)
         scramble = comproc.stdout.decode()[:-2] + ' '
         cumsum_moves += solver(scramble, verbosity, stages=stages)[1]
         if verbosity > 0:
@@ -79,7 +84,7 @@ def batch(n_scrambles=10, verbosity=2, stages=default_stages):
     #n_scrambles = 10
     print()
     print(f'performing test with {n_scrambles} scrambles...')
-    cumsum_moves = many_solves(n_scrambles, verbosity, stages)
+    cumsum_moves = _many_solves(n_scrambles, verbosity, stages)
     print('test complete')
     #print(f'avg: {cumsum_moves} / {n_scrambles} = {cumsum_moves // n_scrambles} R {cumsum_moves % n_scrambles}')
     print(f'avg: {cumsum_moves} / {n_scrambles} = {cumsum_moves / n_scrambles:.2f}')
